@@ -34,7 +34,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     initAuth();
-  }, [getToken]);
+  }, [getToken, checkAdminStatus]);
 
   if (loading)
     return (

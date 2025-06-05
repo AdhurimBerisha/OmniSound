@@ -1,6 +1,6 @@
 import { Song } from "../models/song.model.js";
 
-export const getAllSongs = async (req, resizeBy, next) => {
+export const getAllSongs = async (req, res, next) => {
   try {
     // -1 = Descending => newest -> oldest
     // 1 = Ascending => oldest -> newest
