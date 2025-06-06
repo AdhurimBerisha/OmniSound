@@ -8,6 +8,7 @@ interface PlayerStore {
   queue: Song[];
   currentIndex: number;
   isShuffled: boolean;
+  isLooped: boolean;
 
   initializeQueue: (songs: Song[]) => void;
   playAlbum: (songs: Song[], startIndex?: number) => void;
@@ -16,6 +17,7 @@ interface PlayerStore {
   playNext: () => void;
   playPrevious: () => void;
   toggleShuffle: () => void;
+  toggleLoop: () => void;
 }
 
 export const usePlayerStore = create<PlayerStore>((set, get) => ({
@@ -24,6 +26,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   queue: [],
   currentIndex: -1,
   isShuffled: false,
+  isLooped: false,
 
   initializeQueue: (songs: Song[]) => {
     set({
@@ -93,7 +96,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   },
 
   playNext: () => {
-    const { currentIndex, queue, isShuffled } = get();
+    const { currentIndex, queue, isShuffled, isLooped } = get();
     
     if (isShuffled) {
       // Get a random index that's not the current one
@@ -138,15 +141,34 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
           isPlaying: true,
         });
       } else {
-        // no next song
-        set({ isPlaying: false });
+        // If loop is enabled, start from the beginning
+        if (isLooped && queue.length > 0) {
+          const firstSong = queue[0];
+          
+          const socket = useChatStore.getState().socket;
+          if (socket.auth) {
+            socket.emit("update_activity", {
+              userId: socket.auth.userId,
+              activity: `Playing ${firstSong.title} by ${firstSong.artist}`,
+            });
+          }
 
-        const socket = useChatStore.getState().socket;
-        if (socket.auth) {
-          socket.emit("update_activity", {
-            userId: socket.auth.userId,
-            activity: `Idle`,
+          set({
+            currentSong: firstSong,
+            currentIndex: 0,
+            isPlaying: true,
           });
+        } else {
+          // no next song and loop is disabled
+          set({ isPlaying: false });
+
+          const socket = useChatStore.getState().socket;
+          if (socket.auth) {
+            socket.emit("update_activity", {
+              userId: socket.auth.userId,
+              activity: `Idle`,
+            });
+          }
         }
       }
     }
@@ -245,5 +267,11 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         isShuffled: false
       });
     }
+  },
+
+  toggleLoop: () => {
+    set((state) => ({
+      isLooped: !state.isLooped
+    }));
   },
 }));
