@@ -22,7 +22,7 @@ const formatTime = (seconds: number) => {
 };
 
 export const PlaybackControls = () => {
-  const { currentSong, isPlaying, togglePlay, playNext, playPrevious } =
+  const { currentSong, isPlaying, togglePlay, playNext, playPrevious, toggleShuffle, isShuffled } =
     usePlayerStore();
 
   const [volume, setVolume] = useState(75);
@@ -91,7 +91,8 @@ export const PlaybackControls = () => {
             <Button
               size="icon"
               variant="ghost"
-              className="hidden sm:inline-flex hover:text-white text-zinc-400"
+              className={`hidden sm:inline-flex hover:text-white ${isShuffled ? 'text-green-500' : 'text-zinc-400'}`}
+              onClick={toggleShuffle}
             >
               <Shuffle className="h-4 w-4" />
             </Button>

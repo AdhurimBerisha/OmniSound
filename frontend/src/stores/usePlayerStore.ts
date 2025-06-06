@@ -7,6 +7,7 @@ interface PlayerStore {
   isPlaying: boolean;
   queue: Song[];
   currentIndex: number;
+  isShuffled: boolean;
 
   initializeQueue: (songs: Song[]) => void;
   playAlbum: (songs: Song[], startIndex?: number) => void;
@@ -14,6 +15,7 @@ interface PlayerStore {
   togglePlay: () => void;
   playNext: () => void;
   playPrevious: () => void;
+  toggleShuffle: () => void;
 }
 
 export const usePlayerStore = create<PlayerStore>((set, get) => ({
@@ -21,6 +23,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   isPlaying: false,
   queue: [],
   currentIndex: -1,
+  isShuffled: false,
 
   initializeQueue: (songs: Song[]) => {
     set({
@@ -90,11 +93,15 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   },
 
   playNext: () => {
-    const { currentIndex, queue } = get();
-    const nextIndex = currentIndex + 1;
-
-    // if there is a next song to play, let's play it
-    if (nextIndex < queue.length) {
+    const { currentIndex, queue, isShuffled } = get();
+    
+    if (isShuffled) {
+      // Get a random index that's not the current one
+      let nextIndex;
+      do {
+        nextIndex = Math.floor(Math.random() * queue.length);
+      } while (nextIndex === currentIndex && queue.length > 1);
+      
       const nextSong = queue[nextIndex];
 
       const socket = useChatStore.getState().socket;
@@ -111,24 +118,50 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         isPlaying: true,
       });
     } else {
-      // no next song
-      set({ isPlaying: false });
+      const nextIndex = currentIndex + 1;
 
-      const socket = useChatStore.getState().socket;
-      if (socket.auth) {
-        socket.emit("update_activity", {
-          userId: socket.auth.userId,
-          activity: `Idle`,
+      // if there is a next song to play, let's play it
+      if (nextIndex < queue.length) {
+        const nextSong = queue[nextIndex];
+
+        const socket = useChatStore.getState().socket;
+        if (socket.auth) {
+          socket.emit("update_activity", {
+            userId: socket.auth.userId,
+            activity: `Playing ${nextSong.title} by ${nextSong.artist}`,
+          });
+        }
+
+        set({
+          currentSong: nextSong,
+          currentIndex: nextIndex,
+          isPlaying: true,
         });
+      } else {
+        // no next song
+        set({ isPlaying: false });
+
+        const socket = useChatStore.getState().socket;
+        if (socket.auth) {
+          socket.emit("update_activity", {
+            userId: socket.auth.userId,
+            activity: `Idle`,
+          });
+        }
       }
     }
   },
-  playPrevious: () => {
-    const { currentIndex, queue } = get();
-    const prevIndex = currentIndex - 1;
 
-    // theres a prev song
-    if (prevIndex >= 0) {
+  playPrevious: () => {
+    const { currentIndex, queue, isShuffled } = get();
+    
+    if (isShuffled) {
+      // Get a random index that's not the current one
+      let prevIndex;
+      do {
+        prevIndex = Math.floor(Math.random() * queue.length);
+      } while (prevIndex === currentIndex && queue.length > 1);
+      
       const prevSong = queue[prevIndex];
 
       const socket = useChatStore.getState().socket;
@@ -145,16 +178,72 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         isPlaying: true,
       });
     } else {
-      // no prev song
-      set({ isPlaying: false });
+      const prevIndex = currentIndex - 1;
 
-      const socket = useChatStore.getState().socket;
-      if (socket.auth) {
-        socket.emit("update_activity", {
-          userId: socket.auth.userId,
-          activity: `Idle`,
+      // theres a prev song
+      if (prevIndex >= 0) {
+        const prevSong = queue[prevIndex];
+
+        const socket = useChatStore.getState().socket;
+        if (socket.auth) {
+          socket.emit("update_activity", {
+            userId: socket.auth.userId,
+            activity: `Playing ${prevSong.title} by ${prevSong.artist}`,
+          });
+        }
+
+        set({
+          currentSong: prevSong,
+          currentIndex: prevIndex,
+          isPlaying: true,
         });
+      } else {
+        // no prev song
+        set({ isPlaying: false });
+
+        const socket = useChatStore.getState().socket;
+        if (socket.auth) {
+          socket.emit("update_activity", {
+            userId: socket.auth.userId,
+            activity: `Idle`,
+          });
+        }
       }
+    }
+  },
+
+  toggleShuffle: () => {
+    const { queue, currentIndex, isShuffled } = get();
+    const currentSong = queue[currentIndex];
+    
+    if (!isShuffled) {
+      // Create a new array excluding the current song
+      const remainingSongs = queue.filter((_, index) => index !== currentIndex);
+      // Shuffle the remaining songs
+      const shuffledSongs = [...remainingSongs].sort(() => Math.random() - 0.5);
+      // Put the current song at the beginning
+      const newQueue = [currentSong, ...shuffledSongs];
+      
+      set({
+        queue: newQueue,
+        currentIndex: 0,
+        isShuffled: true
+      });
+    } else {
+      // Reset to original order
+      const originalQueue = [...queue].sort((a, b) => {
+        const indexA = queue.findIndex(song => song._id === a._id);
+        const indexB = queue.findIndex(song => song._id === b._id);
+        return indexA - indexB;
+      });
+      
+      const newIndex = originalQueue.findIndex(song => song._id === currentSong?._id);
+      
+      set({
+        queue: originalQueue,
+        currentIndex: newIndex,
+        isShuffled: false
+      });
     }
   },
 }));
