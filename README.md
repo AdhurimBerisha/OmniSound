@@ -23,7 +23,7 @@ OmniSound is a modern web application designed to elevate your music experience.
 
 1. Clone the repository  
     ```bash
-    git clone https://github.com/yourusername/omnisound.git
+    git clone https://github.com/AdhurimBerisha/OmniSound.git
     ```
 
 2. Install dependencies for frontend and backend  
