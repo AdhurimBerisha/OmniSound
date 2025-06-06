@@ -17,5 +17,5 @@ OmniSound is a modern web application designed to elevate your music experience.
 - Backend: Node.js, Express.js  
 - Database: MongoDB  
 - Authentication: JWT / OAuth (optional)  
-- Real-time: WebSockets / Socket.IO  
+- Real-time: Socket.IO  
 
