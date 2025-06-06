@@ -67,5 +67,4 @@ This project requires a few environment variables to run properly.
 ### Frontend `.env.local` variables include:
 
 - `VITE_CLERK_PUBLISHABLE_KEY` — Clerk publishable key
-- 
 ---
