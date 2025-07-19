@@ -1,5 +1,8 @@
 # OmniSound – Music Streaming & Discovery Platform
 
+![project3](https://github.com/user-attachments/assets/5d975b87-cf0a-4096-9232-50185fb608b7)
+
+
 OmniSound is a modern web application designed to elevate your music experience. It offers powerful streaming, personalized playlists, real-time collaboration, artist insights, and seamless social sharing, making it easy to discover, enjoy, and share music like never before.
 
 ## Features
@@ -16,8 +19,7 @@ OmniSound is a modern web application designed to elevate your music experience.
 - Frontend: React, Zustand for state management, Tailwind CSS  
 - Backend: Node.js, Express.js  
 - Database: MongoDB  
-- Authentication: JWT / OAuth (optional)  
-- Real-time:  Socket.IO  
+- Real-time Chat Communication:  Socket.IO  
 
 ## Installation
 
