@@ -3,18 +3,25 @@ import { buttonVariants } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useMusicStore } from "@/stores/useMusicStore";
+import { usePlaylistStore } from "@/stores/usePlaylistStore";
 import { SignedIn } from "@clerk/clerk-react";
-import { HomeIcon, Library, MessageCircle } from "lucide-react";
+import { HomeIcon, Library, MessageCircle, Music } from "lucide-react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const LeftSidebar = () => {
   //   data fetching logic => zustand
   const { songs, albums, error, fetchAlbums, isLoading } = useMusicStore();
+  const {
+    playlists,
+    fetchUserPlaylists,
+    isLoading: playlistsLoading,
+  } = usePlaylistStore();
 
   useEffect(() => {
     fetchAlbums();
-  }, [fetchAlbums]);
+    fetchUserPlaylists();
+  }, [fetchAlbums, fetchUserPlaylists]);
   console.log({ albums });
 
   return (
@@ -49,6 +56,20 @@ const LeftSidebar = () => {
               <MessageCircle className="mr-2 size-5" />
               <span className="hidden md:inline">Messages</span>
             </Link>
+
+            <Link
+              to={"/playlists"}
+              className={cn(
+                buttonVariants({
+                  variant: "ghost",
+                  className:
+                    "w-full justify-start text-white hover:bg-zinc-800",
+                })
+              )}
+            >
+              <Music className="mr-2 size-5" />
+              <span className="hidden md:inline">My Playlists</span>
+            </Link>
           </SignedIn>
         </div>
       </div>
@@ -57,36 +78,73 @@ const LeftSidebar = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center text-white px-2">
             <Library className="size-5 mr-2 " />
-            <span className="hidden md:inline">Playlists</span>
+            <span className="hidden md:inline">Library</span>
           </div>
         </div>
 
         <ScrollArea className="h-[calc(100vh-300px)]">
           <div className="space-y-2">
-            {isLoading ? (
-              <PlaylistSkeleton />
-            ) : (
-              albums.map((album) => (
-                <Link
-                  to={`/albums/${album._id}`}
-                  key={album._id}
-                  className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
-                >
-                  <img
-                    className="size-12 rounded-md flex-shrink-0 object-cover"
-                    src={album.imageUrl}
-                    alt="Playlist img"
-                  />
+            {/* Albums */}
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-zinc-400 px-2 mb-2">
+                Albums
+              </h3>
+              {isLoading ? (
+                <PlaylistSkeleton />
+              ) : (
+                albums.slice(0, 5).map((album) => (
+                  <Link
+                    to={`/albums/${album._id}`}
+                    key={album._id}
+                    className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
+                  >
+                    <img
+                      className="size-12 rounded-md flex-shrink-0 object-cover"
+                      src={album.imageUrl}
+                      alt="Album img"
+                    />
 
-                  <div className="flex-1 min-w-0 hidden md:block">
-                    <p className="font-mediun truncate">{album.title}</p>
-                    <p className="text-sm text-zinc-400 truncate">
-                      • Album {album.artist}
-                    </p>
-                  </div>
-                </Link>
-              ))
-            )}
+                    <div className="flex-1 min-w-0 hidden md:block">
+                      <p className="font-medium truncate">{album.title}</p>
+                      <p className="text-sm text-zinc-400 truncate">
+                        • Album • {album.artist}
+                      </p>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+
+            {/* User Playlists */}
+            <SignedIn>
+              <div>
+                <h3 className="text-sm font-medium text-zinc-400 px-2 mb-2">
+                  Your Playlists
+                </h3>
+                {playlistsLoading ? (
+                  <PlaylistSkeleton />
+                ) : (
+                  playlists.slice(0, 5).map((playlist) => (
+                    <Link
+                      to={`/playlists/${playlist._id}`}
+                      key={playlist._id}
+                      className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
+                    >
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md flex items-center justify-center text-white font-bold text-sm">
+                        {playlist.name.charAt(0).toUpperCase()}
+                      </div>
+
+                      <div className="flex-1 min-w-0 hidden md:block">
+                        <p className="font-medium truncate">{playlist.name}</p>
+                        <p className="text-sm text-zinc-400 truncate">
+                          • Playlist • {playlist.songs.length} songs
+                        </p>
+                      </div>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </SignedIn>
           </div>
         </ScrollArea>
       </div>

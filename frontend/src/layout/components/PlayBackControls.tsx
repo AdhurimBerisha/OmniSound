@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { usePlayerStore } from "@/stores/usePlayerStore";
+import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog";
 import {
   Laptop2,
   ListMusic,
   Mic2,
   Pause,
   Play,
+  Plus,
   Repeat,
   Shuffle,
   SkipBack,
@@ -22,12 +24,22 @@ const formatTime = (seconds: number) => {
 };
 
 export const PlaybackControls = () => {
-  const { currentSong, isPlaying, togglePlay, playNext, playPrevious, toggleShuffle, isShuffled, toggleLoop, isLooped } =
-    usePlayerStore();
+  const {
+    currentSong,
+    isPlaying,
+    togglePlay,
+    playNext,
+    playPrevious,
+    toggleShuffle,
+    isShuffled,
+    toggleLoop,
+    isLooped,
+  } = usePlayerStore();
 
   const [volume, setVolume] = useState(75);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -61,6 +73,10 @@ export const PlaybackControls = () => {
     }
   };
 
+  const handleAddToPlaylist = () => {
+    setAddToPlaylistOpen(true);
+  };
+
   return (
     <footer className="h-20 sm:h-24 bg-zinc-900 border-t border-zinc-800 px-4">
       <div className="flex justify-between items-center h-full max-w-[1800px] mx-auto">
@@ -91,7 +107,9 @@ export const PlaybackControls = () => {
             <Button
               size="icon"
               variant="ghost"
-              className={`hidden sm:inline-flex hover:text-white ${isShuffled ? 'text-green-500' : 'text-zinc-400'}`}
+              className={`hidden sm:inline-flex hover:text-white ${
+                isShuffled ? "text-green-500" : "text-zinc-400"
+              }`}
               onClick={toggleShuffle}
             >
               <Shuffle className="h-4 w-4" />
@@ -131,7 +149,9 @@ export const PlaybackControls = () => {
             <Button
               size="icon"
               variant="ghost"
-              className={`hidden sm:inline-flex hover:text-white ${isLooped ? 'text-green-500' : 'text-zinc-400'}`}
+              className={`hidden sm:inline-flex hover:text-white ${
+                isLooped ? "text-green-500" : "text-zinc-400"
+              }`}
               onClick={toggleLoop}
             >
               <Repeat className="h-4 w-4" />
@@ -154,6 +174,15 @@ export const PlaybackControls = () => {
         </div>
         {/* volume controls */}
         <div className="hidden sm:flex items-center gap-4 min-w-[180px] w-[30%] justify-end">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="hover:text-white text-zinc-400"
+            onClick={handleAddToPlaylist}
+            disabled={!currentSong}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
           <Button
             size="icon"
             variant="ghost"
@@ -200,6 +229,12 @@ export const PlaybackControls = () => {
           </div>
         </div>
       </div>
+
+      <AddToPlaylistDialog
+        open={addToPlaylistOpen}
+        onOpenChange={setAddToPlaylistOpen}
+        song={currentSong}
+      />
     </footer>
   );
 };

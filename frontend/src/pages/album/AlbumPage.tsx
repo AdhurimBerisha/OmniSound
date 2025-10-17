@@ -2,9 +2,11 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { usePlayerStore } from "@/stores/usePlayerStore";
-import { Clock, Pause, Play } from "lucide-react";
-import { useEffect } from "react";
+import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog";
+import { Clock, Pause, Play, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import type { Song } from "@/types";
 
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -16,10 +18,18 @@ const AlbumPage = () => {
   const { albumId } = useParams();
   const { fetchAlbumById, currentAlbum, isLoading } = useMusicStore();
   const { currentSong, isPlaying, playAlbum, togglePlay } = usePlayerStore();
+  const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false);
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
 
   useEffect(() => {
     if (albumId) fetchAlbumById(albumId);
   }, [fetchAlbumById, albumId]);
+
+  const handleAddToPlaylist = (song: Song, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedSong(song);
+    setAddToPlaylistOpen(true);
+  };
 
   if (isLoading) return null;
 
@@ -98,7 +108,7 @@ const AlbumPage = () => {
             <div className="bg-black/20 backdrop-blur-sm">
               {/* Table header */}
               <div
-                className="grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-10 py-2 text-sm 
+                className="grid grid-cols-[16px_4fr_2fr_1fr_40px] gap-4 px-10 py-2 text-sm 
             text-zinc-400 border-b border-white/5"
               >
                 <div>#</div>
@@ -107,6 +117,7 @@ const AlbumPage = () => {
                 <div>
                   <Clock className="h-4 w-4" />
                 </div>
+                <div></div>
               </div>
 
               {/* Songs list */}
@@ -118,7 +129,7 @@ const AlbumPage = () => {
                       <div
                         key={song._id}
                         onClick={() => handlePlaySong(index)}
-                        className="grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-4 py-2 text-sm text-zinc-400 hover:bg-white/5 rounded-md group cursor-pointer"
+                        className="grid grid-cols-[16px_4fr_2fr_1fr_40px] gap-4 px-4 py-2 text-sm text-zinc-400 hover:bg-white/5 rounded-md group cursor-pointer"
                       >
                         {/* Play button */}
                         <div className="flex items-center justify-center">
@@ -158,6 +169,18 @@ const AlbumPage = () => {
                         <div className="flex items-center">
                           {formatDuration(song.duration)}
                         </div>
+
+                        {/* Add to Playlist Button */}
+                        <div className="flex items-center justify-center">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={(e) => handleAddToPlaylist(song, e)}
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400 hover:text-white"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
@@ -167,6 +190,12 @@ const AlbumPage = () => {
           </div>
         </div>
       </ScrollArea>
+
+      <AddToPlaylistDialog
+        open={addToPlaylistOpen}
+        onOpenChange={setAddToPlaylistOpen}
+        song={selectedSong}
+      />
     </div>
   );
 };
