@@ -18,15 +18,19 @@ const formatTime = (date: string) => {
 
 const ChatPage = () => {
   const { user } = useUser();
-  const { messages, selectedUser, fetchUsers, fetchMessages } = useChatStore();
+  const { messages, selectedUser, fetchUsers, fetchMessages, markAsRead } =
+    useChatStore();
 
   useEffect(() => {
     if (user) fetchUsers();
   }, [fetchUsers, user]);
 
   useEffect(() => {
-    if (selectedUser) fetchMessages(selectedUser.clerkId);
-  }, [selectedUser, fetchMessages]);
+    if (selectedUser) {
+      fetchMessages(selectedUser.clerkId);
+      markAsRead(selectedUser.clerkId);
+    }
+  }, [selectedUser, fetchMessages, markAsRead]);
 
   console.log({ messages });
 

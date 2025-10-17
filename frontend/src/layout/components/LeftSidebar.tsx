@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { usePlaylistStore } from "@/stores/usePlaylistStore";
+import { useChatStore } from "@/stores/useChatStore";
 import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog";
 import { SignedIn } from "@clerk/clerk-react";
 import { HomeIcon, Library, MessageCircle, Music, Plus } from "lucide-react";
@@ -18,7 +19,10 @@ const LeftSidebar = () => {
     fetchUserPlaylists,
     isLoading: playlistsLoading,
   } = usePlaylistStore();
+  const { getTotalUnreadCount } = useChatStore();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  const totalUnreadMessages = getTotalUnreadCount();
 
   useEffect(() => {
     fetchAlbums();
@@ -51,12 +55,17 @@ const LeftSidebar = () => {
                 buttonVariants({
                   variant: "ghost",
                   className:
-                    "w-full justify-start text-white hover:bg-zinc-800",
+                    "w-full justify-start text-white hover:bg-zinc-800 relative",
                 })
               )}
             >
               <MessageCircle className="mr-2 size-5" />
               <span className="hidden md:inline">Messages</span>
+              {totalUnreadMessages > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {totalUnreadMessages > 99 ? "99+" : totalUnreadMessages}
+                </span>
+              )}
             </Link>
 
             <Link

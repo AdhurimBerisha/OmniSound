@@ -13,6 +13,7 @@ interface ChatStore {
   userActivities: Map<string, string>;
   messages: Message[];
   selectedUser: User | null;
+  unreadCounts: Map<string, number>;
 
   fetchUsers: () => Promise<void>;
   initSocket: (userId: string) => void;
@@ -20,6 +21,9 @@ interface ChatStore {
   sendMessage: (receiverId: string, senderId: string, content: string) => void;
   fetchMessages: (userId: string) => Promise<void>;
   setSelectedUser: (user: User | null) => void;
+  markAsRead: (userId: string) => void;
+  getUnreadCount: (userId: string) => number;
+  getTotalUnreadCount: () => number;
 }
 
 const baseURL = "http://localhost:5000";
@@ -39,8 +43,14 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   userActivities: new Map(),
   messages: [],
   selectedUser: null,
+  unreadCounts: new Map(),
 
-  setSelectedUser: (user) => set({ selectedUser: user }),
+  setSelectedUser: (user) => {
+    set({ selectedUser: user });
+    if (user) {
+      get().markAsRead(user.clerkId);
+    }
+  },
 
   fetchUsers: async () => {
     set({ isLoading: true, error: null });
@@ -84,9 +94,19 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       });
 
       socket.on("receive_message", (message: Message) => {
-        set((state) => ({
-          messages: [...state.messages, message],
-        }));
+        set((state) => {
+          const newMessages = [...state.messages, message];
+          const newUnreadCounts = new Map(state.unreadCounts);
+
+          // Increment unread count for the sender
+          const currentCount = newUnreadCounts.get(message.senderId) || 0;
+          newUnreadCounts.set(message.senderId, currentCount + 1);
+
+          return {
+            messages: newMessages,
+            unreadCounts: newUnreadCounts,
+          };
+        });
       });
 
       socket.on("message_sent", (message: Message) => {
@@ -131,5 +151,27 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     } finally {
       set({ isLoading: false });
     }
+  },
+
+  markAsRead: (userId: string) => {
+    set((state) => {
+      const newUnreadCounts = new Map(state.unreadCounts);
+      newUnreadCounts.set(userId, 0);
+      return { unreadCounts: newUnreadCounts };
+    });
+  },
+
+  getUnreadCount: (userId: string) => {
+    const state = get();
+    return state.unreadCounts.get(userId) || 0;
+  },
+
+  getTotalUnreadCount: () => {
+    const state = get();
+    let total = 0;
+    state.unreadCounts.forEach((count) => {
+      total += count;
+    });
+    return total;
   },
 }));
