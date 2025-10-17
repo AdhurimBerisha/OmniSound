@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { usePlayerStore } from "@/stores/usePlayerStore";
+import { useMusicStore } from "@/stores/useMusicStore";
 import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog";
 import type { Song } from "@/types";
-import { Pause, Play, Plus } from "lucide-react";
+import { Pause, Play, Plus, Heart } from "lucide-react";
 
 interface SongCardProps {
   song: Song;
@@ -13,13 +14,24 @@ interface SongCardProps {
 export function SongCard({ song, showAddToPlaylist = true }: SongCardProps) {
   const { currentSong, isPlaying, setCurrentSong, togglePlay } =
     usePlayerStore();
+  const { likedSongs, likeSong, unlikeSong } = useMusicStore();
   const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false);
 
   const isCurrentSong = currentSong?._id === song._id;
+  const isLiked = likedSongs.some((likedSong) => likedSong._id === song._id);
 
   const handlePlay = () => {
     if (isCurrentSong) togglePlay();
     else setCurrentSong(song);
+  };
+
+  const handleLikeToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isLiked) {
+      unlikeSong(song._id);
+    } else {
+      likeSong(song._id);
+    }
   };
 
   const formatDuration = (seconds: number) => {
@@ -66,6 +78,19 @@ export function SongCard({ song, showAddToPlaylist = true }: SongCardProps) {
           <span className="text-sm text-muted-foreground">
             {formatDuration(song.duration)}
           </span>
+
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={handleLikeToggle}
+            className={`opacity-0 group-hover:opacity-100 transition-opacity ${
+              isLiked
+                ? "text-red-500 hover:text-red-600"
+                : "text-muted-foreground hover:text-red-500"
+            }`}
+          >
+            <Heart className={`size-4 ${isLiked ? "fill-current" : ""}`} />
+          </Button>
 
           {showAddToPlaylist && (
             <Button

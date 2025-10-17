@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog";
 import { usePlaylistStore } from "@/stores/usePlaylistStore";
 import { usePlayerStore } from "@/stores/usePlayerStore";
+import { useMusicStore } from "@/stores/useMusicStore";
 import {
   ArrowLeft,
   Play,
@@ -14,6 +15,7 @@ import {
   Clock,
   Pause,
   X,
+  Heart,
 } from "lucide-react";
 
 export const formatDuration = (seconds: number) => {
@@ -25,9 +27,15 @@ export const formatDuration = (seconds: number) => {
 export function PlaylistDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentPlaylist, fetchPlaylistById, deletePlaylist, removeSongFromPlaylist, isLoading } =
-    usePlaylistStore();
+  const {
+    currentPlaylist,
+    fetchPlaylistById,
+    deletePlaylist,
+    removeSongFromPlaylist,
+    isLoading,
+  } = usePlaylistStore();
   const { currentSong, isPlaying, playAlbum, togglePlay } = usePlayerStore();
+  const { likedSongs, likeSong, unlikeSong } = useMusicStore();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -45,7 +53,6 @@ export function PlaylistDetailPage() {
     );
     if (isCurrentPlaylistPlaying) togglePlay();
     else {
-      // start playing the playlist from the beginning
       playAlbum(currentPlaylist?.songs, 0);
     }
   };
@@ -81,12 +88,26 @@ export function PlaylistDetailPage() {
   const handleRemoveSong = async (songId: string, songTitle: string) => {
     if (!currentPlaylist) return;
 
-    if (window.confirm(`Are you sure you want to remove "${songTitle}" from this playlist?`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to remove "${songTitle}" from this playlist?`
+      )
+    ) {
       try {
         await removeSongFromPlaylist(currentPlaylist._id, songId);
       } catch (error) {
         console.error("Failed to remove song:", error);
       }
+    }
+  };
+
+  const handleLikeToggle = (songId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const isLiked = likedSongs.some((song) => song._id === songId);
+    if (isLiked) {
+      unlikeSong(songId);
+    } else {
+      likeSong(songId);
     }
   };
 
@@ -212,7 +233,7 @@ export function PlaylistDetailPage() {
             <div className="bg-black/20 backdrop-blur-sm">
               {/* Table header */}
               <div
-                className="grid grid-cols-[16px_4fr_2fr_1fr_auto] gap-4 px-10 py-2 text-sm 
+                className="grid grid-cols-[16px_4fr_2fr_1fr_auto_auto] gap-4 px-10 py-2 text-sm 
             text-zinc-400 border-b border-white/5"
               >
                 <div>#</div>
@@ -221,6 +242,7 @@ export function PlaylistDetailPage() {
                 <div>
                   <Clock className="h-4 w-4" />
                 </div>
+                <div></div>
                 <div></div>
               </div>
 
@@ -240,10 +262,10 @@ export function PlaylistDetailPage() {
                       return (
                         <div
                           key={song._id}
-                          className="grid grid-cols-[16px_4fr_2fr_1fr_auto] gap-4 px-4 py-2 text-sm text-zinc-400 hover:bg-white/5 rounded-md group"
+                          className="grid grid-cols-[16px_4fr_2fr_1fr_auto_auto] gap-4 px-4 py-2 text-sm text-zinc-400 hover:bg-white/5 rounded-md group"
                         >
                           {/* Play button */}
-                          <div 
+                          <div
                             className="flex items-center justify-center cursor-pointer"
                             onClick={() => handlePlaySong(index)}
                           >
@@ -260,7 +282,7 @@ export function PlaylistDetailPage() {
                           </div>
 
                           {/* Song info */}
-                          <div 
+                          <div
                             className="flex items-center gap-3 cursor-pointer"
                             onClick={() => handlePlaySong(index)}
                           >
@@ -278,13 +300,45 @@ export function PlaylistDetailPage() {
                           </div>
 
                           {/* Date Added */}
-                          <div className="flex items-center cursor-pointer" onClick={() => handlePlaySong(index)}>
+                          <div
+                            className="flex items-center cursor-pointer"
+                            onClick={() => handlePlaySong(index)}
+                          >
                             {song.createdAt?.split("T")[0]}
                           </div>
 
                           {/* Duration */}
-                          <div className="flex items-center cursor-pointer" onClick={() => handlePlaySong(index)}>
+                          <div
+                            className="flex items-center cursor-pointer"
+                            onClick={() => handlePlaySong(index)}
+                          >
                             {formatDuration(song.duration)}
+                          </div>
+
+                          {/* Like button */}
+                          <div className="flex items-center justify-center">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => handleLikeToggle(song._id, e)}
+                              className={`size-8 opacity-0 group-hover:opacity-100 transition-opacity ${
+                                likedSongs.some(
+                                  (likedSong) => likedSong._id === song._id
+                                )
+                                  ? "text-red-500 hover:text-red-600"
+                                  : "text-zinc-400 hover:text-red-500"
+                              }`}
+                            >
+                              <Heart
+                                className={`h-4 w-4 ${
+                                  likedSongs.some(
+                                    (likedSong) => likedSong._id === song._id
+                                  )
+                                    ? "fill-current"
+                                    : ""
+                                }`}
+                              />
+                            </Button>
                           </div>
 
                           {/* Remove button */}

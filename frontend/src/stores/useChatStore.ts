@@ -29,7 +29,7 @@ interface ChatStore {
 const baseURL = "http://localhost:5000";
 
 const socket = io(baseURL, {
-  autoConnect: false, // only connect if user is authenticated
+  autoConnect: false,
   withCredentials: true,
 });
 
@@ -98,7 +98,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
           const newMessages = [...state.messages, message];
           const newUnreadCounts = new Map(state.unreadCounts);
 
-          // Increment unread count for the sender
           const currentCount = newUnreadCounts.get(message.senderId) || 0;
           newUnreadCounts.set(message.senderId, currentCount + 1);
 

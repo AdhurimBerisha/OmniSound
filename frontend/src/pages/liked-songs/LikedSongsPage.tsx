@@ -1,12 +1,9 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { usePlayerStore } from "@/stores/usePlayerStore";
-import { AddToPlaylistDialog } from "@/components/AddToPlaylistDialog";
-import { Clock, Pause, Play, Plus, Heart } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import type { Song } from "@/types";
+import { Play, Shuffle, Clock, Pause, Heart } from "lucide-react";
 
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -14,28 +11,37 @@ export const formatDuration = (seconds: number) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
-const AlbumPage = () => {
-  const { albumId } = useParams();
-  const {
-    fetchAlbumById,
-    currentAlbum,
-    isLoading,
-    likedSongs,
-    likeSong,
-    unlikeSong,
-  } = useMusicStore();
+export function LikedSongsPage() {
+  const { likedSongs, fetchLikedSongs, likeSong, unlikeSong, isLoading } =
+    useMusicStore();
   const { currentSong, isPlaying, playAlbum, togglePlay } = usePlayerStore();
-  const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false);
-  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
 
   useEffect(() => {
-    if (albumId) fetchAlbumById(albumId);
-  }, [fetchAlbumById, albumId]);
+    fetchLikedSongs();
+  }, [fetchLikedSongs]);
 
-  const handleAddToPlaylist = (song: Song, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedSong(song);
-    setAddToPlaylistOpen(true);
+  const handlePlayLikedSongs = () => {
+    if (likedSongs.length === 0) return;
+
+    const isCurrentPlaylistPlaying = likedSongs.some(
+      (song) => song._id === currentSong?._id
+    );
+    if (isCurrentPlaylistPlaying) togglePlay();
+    else {
+      playAlbum(likedSongs, 0);
+    }
+  };
+
+  const handleShufflePlay = () => {
+    if (likedSongs.length > 0) {
+      const shuffledSongs = [...likedSongs].sort(() => Math.random() - 0.5);
+      playAlbum(shuffledSongs, 0);
+    }
+  };
+
+  const handlePlaySong = (index: number) => {
+    if (likedSongs.length === 0) return;
+    playAlbum(likedSongs, index);
   };
 
   const handleLikeToggle = (songId: string, e: React.MouseEvent) => {
@@ -48,27 +54,32 @@ const AlbumPage = () => {
     }
   };
 
+  const totalDuration = likedSongs.reduce(
+    (total, song) => total + song.duration,
+    0
+  );
+
   if (isLoading) return null;
 
-  const handlePlayAlbum = () => {
-    if (!currentAlbum) return;
-
-    const isCurrentAlbumPlaying = currentAlbum?.songs.some(
-      (song) => song._id === currentSong?._id
+  if (likedSongs.length === 0) {
+    return (
+      <div className="h-full">
+        <ScrollArea className="h-full rounded-md">
+          <div className="p-6">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-4">No liked songs yet</h1>
+              <p className="text-muted-foreground mb-4">
+                Songs you like will appear here
+              </p>
+            </div>
+          </div>
+        </ScrollArea>
+      </div>
     );
-    if (isCurrentAlbumPlaying) togglePlay();
-    else {
-      playAlbum(currentAlbum?.songs, 0);
-    }
-  };
-
-  const handlePlaySong = (index: number) => {
-    if (!currentAlbum) return;
-    playAlbum(currentAlbum?.songs, index);
-  };
+  }
 
   return (
-    <div className="h-full ">
+    <div className="h-full">
       <ScrollArea className="h-full rounded-md">
         {/* Main Content */}
         <div className="relative min-h-screen">
@@ -80,43 +91,46 @@ const AlbumPage = () => {
           />
 
           {/* Content */}
-          <div className="relative z-10 ">
+          <div className="relative z-10">
             <div className="flex p-6 gap-6 pb-8">
-              <img
-                className="w-[250px] h-[240px] shadow-xl rounded"
-                src={currentAlbum?.imageUrl}
-                alt={currentAlbum?.title}
-              />
+              <div className="w-[250px] h-[240px] rounded shadow-xl overflow-hidden">
+                <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-6xl">
+                  ♥
+                </div>
+              </div>
               <div className="flex flex-col justify-end">
-                <p className="text-sm font-medium">Album</p>
-                <h1 className="text-7xl font-bold my-4">
-                  {currentAlbum?.title}
-                </h1>
+                <p className="text-sm font-medium">Playlist</p>
+                <h1 className="text-7xl font-bold my-4">Liked Songs</h1>
                 <div className="flex items-center gap-2 text-sm text-zinc-100">
-                  <span className="font-medium text-white">
-                    {currentAlbum?.artist}
-                  </span>
-                  <span>• {currentAlbum?.songs.length} songs</span>
-                  <span> {currentAlbum?.releaseYear}</span>
+                  <span className="font-medium text-white">Songs you love</span>
+                  <span>• {likedSongs.length} songs</span>
+                  <span>• {formatDuration(totalDuration)}</span>
                 </div>
               </div>
             </div>
 
-            {/* Play button */}
+            {/* Play and Shuffle buttons */}
             <div className="px-6 pb-4 flex items-center gap-6">
               <Button
-                onClick={handlePlayAlbum}
+                onClick={handlePlayLikedSongs}
                 size="icon"
                 className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-400"
               >
                 {isPlaying &&
-                currentAlbum?.songs.some(
-                  (song) => song._id === currentSong?._id
-                ) ? (
+                likedSongs.some((song) => song._id === currentSong?._id) ? (
                   <Pause className="h-7 w-7 text-black" />
                 ) : (
                   <Play className="h-7 w-7 text-black" />
                 )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleShufflePlay}
+                disabled={likedSongs.length === 0}
+                className="border-white/20 text-white hover:bg-white/10"
+              >
+                <Shuffle className="h-4 w-4 mr-2" />
+                Shuffle
               </Button>
             </div>
 
@@ -124,28 +138,27 @@ const AlbumPage = () => {
             <div className="bg-black/20 backdrop-blur-sm">
               {/* Table header */}
               <div
-                className="grid grid-cols-[16px_4fr_2fr_1fr_40px_40px] gap-4 px-10 py-2 text-sm 
+                className="grid grid-cols-[16px_4fr_2fr_1fr_auto] gap-4 px-10 py-2 text-sm 
             text-zinc-400 border-b border-white/5"
               >
                 <div>#</div>
                 <div>Title</div>
-                <div>Released Date</div>
+                <div>Date Added</div>
                 <div>
                   <Clock className="h-4 w-4" />
                 </div>
-                <div></div>
                 <div></div>
               </div>
 
               {/* Songs list */}
               <div className="px-6">
                 <div className="space-y-2 py-4">
-                  {currentAlbum?.songs.map((song, index) => {
+                  {likedSongs.map((song, index) => {
                     const isCurrentSong = currentSong?._id === song._id;
                     return (
                       <div
                         key={song._id}
-                        className="grid grid-cols-[16px_4fr_2fr_1fr_40px_40px] gap-4 px-4 py-2 text-sm text-zinc-400 hover:bg-white/5 rounded-md group"
+                        className="grid grid-cols-[16px_4fr_2fr_1fr_auto] gap-4 px-4 py-2 text-sm text-zinc-400 hover:bg-white/5 rounded-md group"
                       >
                         {/* Play button */}
                         <div
@@ -164,7 +177,7 @@ const AlbumPage = () => {
                           )}
                         </div>
 
-                        {/* Table Section */}
+                        {/* Song info */}
                         <div
                           className="flex items-center gap-3 cursor-pointer"
                           onClick={() => handlePlaySong(index)}
@@ -182,7 +195,7 @@ const AlbumPage = () => {
                           </div>
                         </div>
 
-                        {/* Release Date */}
+                        {/* Date Added */}
                         <div
                           className="flex items-center cursor-pointer"
                           onClick={() => handlePlaySong(index)}
@@ -198,41 +211,15 @@ const AlbumPage = () => {
                           {formatDuration(song.duration)}
                         </div>
 
-                        {/* Like Button */}
+                        {/* Like button */}
                         <div className="flex items-center justify-center">
                           <Button
-                            size="icon"
                             variant="ghost"
+                            size="icon"
                             onClick={(e) => handleLikeToggle(song._id, e)}
-                            className={`h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity ${
-                              likedSongs.some(
-                                (likedSong) => likedSong._id === song._id
-                              )
-                                ? "text-red-500 hover:text-red-600"
-                                : "text-zinc-400 hover:text-red-500"
-                            }`}
+                            className="size-8 text-red-500 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <Heart
-                              className={`h-4 w-4 ${
-                                likedSongs.some(
-                                  (likedSong) => likedSong._id === song._id
-                                )
-                                  ? "fill-current"
-                                  : ""
-                              }`}
-                            />
-                          </Button>
-                        </div>
-
-                        {/* Add to Playlist Button */}
-                        <div className="flex items-center justify-center">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={(e) => handleAddToPlaylist(song, e)}
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400 hover:text-white"
-                          >
-                            <Plus className="h-4 w-4" />
+                            <Heart className="h-4 w-4 fill-current" />
                           </Button>
                         </div>
                       </div>
@@ -244,13 +231,6 @@ const AlbumPage = () => {
           </div>
         </div>
       </ScrollArea>
-
-      <AddToPlaylistDialog
-        open={addToPlaylistOpen}
-        onOpenChange={setAddToPlaylistOpen}
-        song={selectedSong}
-      />
     </div>
   );
-};
-export default AlbumPage;
+}

@@ -2,13 +2,11 @@ import { Playlist } from "../models/playlist.model.js";
 import { Song } from "../models/song.model.js";
 import { User } from "../models/user.model.js";
 
-// Create a new playlist
 export const createPlaylist = async (req, res, next) => {
   try {
     const { name, description, imageUrl, isPublic } = req.body;
     const userId = req.auth.userId;
 
-    // Find user by clerkId
     const user = await User.findOne({ clerkId: userId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -32,12 +30,10 @@ export const createPlaylist = async (req, res, next) => {
   }
 };
 
-// Get all playlists for a user
 export const getUserPlaylists = async (req, res, next) => {
   try {
     const userId = req.auth.userId;
 
-    // Find user by clerkId
     const user = await User.findOne({ clerkId: userId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -53,13 +49,11 @@ export const getUserPlaylists = async (req, res, next) => {
   }
 };
 
-// Get a specific playlist by ID
 export const getPlaylistById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.auth.userId;
 
-    // Find user by clerkId
     const user = await User.findOne({ clerkId: userId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -80,14 +74,12 @@ export const getPlaylistById = async (req, res, next) => {
   }
 };
 
-// Update playlist details
 export const updatePlaylist = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { name, description, imageUrl, isPublic } = req.body;
     const userId = req.auth.userId;
 
-    // Find user by clerkId
     const user = await User.findOne({ clerkId: userId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -114,13 +106,11 @@ export const updatePlaylist = async (req, res, next) => {
   }
 };
 
-// Delete playlist
 export const deletePlaylist = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.auth.userId;
 
-    // Find user by clerkId
     const user = await User.findOne({ clerkId: userId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -141,20 +131,17 @@ export const deletePlaylist = async (req, res, next) => {
   }
 };
 
-// Add song to playlist
 export const addSongToPlaylist = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { songId } = req.body;
     const userId = req.auth.userId;
 
-    // Find user by clerkId
     const user = await User.findOne({ clerkId: userId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if song exists
     const song = await Song.findById(songId);
     if (!song) {
       return res.status(404).json({ message: "Song not found" });
@@ -165,7 +152,6 @@ export const addSongToPlaylist = async (req, res, next) => {
       return res.status(404).json({ message: "Playlist not found" });
     }
 
-    // Check if song is already in playlist
     if (playlist.songs.includes(songId)) {
       return res.status(400).json({ message: "Song already in playlist" });
     }
@@ -180,13 +166,11 @@ export const addSongToPlaylist = async (req, res, next) => {
   }
 };
 
-// Remove song from playlist
 export const removeSongFromPlaylist = async (req, res, next) => {
   try {
     const { id, songId } = req.params;
     const userId = req.auth.userId;
 
-    // Find user by clerkId
     const user = await User.findOne({ clerkId: userId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -209,7 +193,6 @@ export const removeSongFromPlaylist = async (req, res, next) => {
   }
 };
 
-// Get public playlists
 export const getPublicPlaylists = async (req, res, next) => {
   try {
     const playlists = await Playlist.find({ isPublic: true })

@@ -1,6 +1,7 @@
 import { axiosInstance } from "@/lib/axios";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useChatStore } from "@/stores/useChatStore";
+import { useMusicStore } from "@/stores/useMusicStore";
 import { useAuth } from "@clerk/clerk-react";
 import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -18,6 +19,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { checkAdminStatus } = useAuthStore();
   const { initSocket, disconnectSocket } = useChatStore();
+  const { fetchLikedSongs } = useMusicStore();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -26,7 +28,8 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         updateApiToken(token);
         if (token) {
           await checkAdminStatus();
-          // init socket
+          await fetchLikedSongs();
+
           if (userId) initSocket(userId);
         }
       } catch (error) {
@@ -39,9 +42,15 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     initAuth();
 
-    // clean up
     return () => disconnectSocket();
-  }, [getToken, userId, checkAdminStatus, initSocket, disconnectSocket]);
+  }, [
+    getToken,
+    userId,
+    checkAdminStatus,
+    initSocket,
+    disconnectSocket,
+    fetchLikedSongs,
+  ]);
 
   if (loading)
     return (

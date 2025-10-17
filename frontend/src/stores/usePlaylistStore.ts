@@ -10,7 +10,6 @@ interface PlaylistStore {
   error: string | null;
   publicPlaylists: Playlist[];
 
-  // Playlist CRUD operations
   createPlaylist: (data: {
     name: string;
     description?: string;
@@ -30,14 +29,11 @@ interface PlaylistStore {
   ) => Promise<void>;
   deletePlaylist: (id: string) => Promise<void>;
 
-  // Song management
   addSongToPlaylist: (playlistId: string, songId: string) => Promise<void>;
   removeSongFromPlaylist: (playlistId: string, songId: string) => Promise<void>;
 
-  // Public playlists
   fetchPublicPlaylists: () => Promise<void>;
 
-  // Utility
   clearCurrentPlaylist: () => void;
 }
 

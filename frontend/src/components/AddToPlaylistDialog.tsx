@@ -56,24 +56,20 @@ export function AddToPlaylistDialog({
     if (!song || !newPlaylistName.trim()) return;
 
     try {
-      // Create the playlist first
       await createPlaylist({
         name: newPlaylistName.trim(),
         description: `Created for ${song.title}`,
         isPublic: false,
       });
 
-      // Wait a moment for the playlist to be created and state to update
       setTimeout(async () => {
         try {
-          // Find the newly created playlist and add the song
           const newPlaylist = playlists.find(
             (p) => p.name === newPlaylistName.trim()
           );
           if (newPlaylist) {
             await addSongToPlaylist(newPlaylist._id, song._id);
           } else {
-            // If playlist not found in local state, fetch playlists again
             await fetchUserPlaylists();
             const updatedPlaylists = usePlaylistStore.getState().playlists;
             const foundPlaylist = updatedPlaylists.find(

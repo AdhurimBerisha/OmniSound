@@ -35,7 +35,6 @@ const playlistSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Index for better query performance
 playlistSchema.index({ userId: 1 });
 playlistSchema.index({ isPublic: 1 });
 

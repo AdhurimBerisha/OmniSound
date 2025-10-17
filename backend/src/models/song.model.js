@@ -29,6 +29,6 @@ const songSchema = new mongoose.Schema(
     },
   },
   { timestamps: true }
-); // createdAt, updatedAt timestamps will be added automatically
+);
 
 export const Song = mongoose.model("Song", songSchema);

@@ -17,7 +17,7 @@ import type { Playlist } from "@/types";
 interface CreatePlaylistDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  playlist?: Playlist | null; // For editing existing playlists
+  playlist?: Playlist | null;
 }
 
 export function CreatePlaylistDialog({
@@ -38,7 +38,6 @@ export function CreatePlaylistDialog({
 
   const isEditing = !!playlist;
 
-  // Populate form data when editing
   useEffect(() => {
     if (playlist && open) {
       setFormData({
@@ -50,7 +49,6 @@ export function CreatePlaylistDialog({
       setPreviewUrl(playlist.imageUrl || "");
       setSelectedFile(null);
     } else if (!playlist && open) {
-      // Reset form for new playlist
       setFormData({
         name: "",
         description: "",
@@ -69,14 +67,12 @@ export function CreatePlaylistDialog({
       return;
     }
 
-    // Check if user is signed in
     if (!isSignedIn) {
       console.error("User must be signed in to create/update playlists");
       return;
     }
 
     try {
-      // Ensure we have a fresh token
       const token = await getToken();
       if (token) {
         axiosInstance.defaults.headers.common[
@@ -86,7 +82,6 @@ export function CreatePlaylistDialog({
 
       let imageUrl = formData.imageUrl.trim();
 
-      // Upload file if selected
       if (selectedFile) {
         imageUrl = await uploadFile(selectedFile);
       }
@@ -107,7 +102,6 @@ export function CreatePlaylistDialog({
         });
       }
 
-      // Reset form
       setFormData({
         name: "",
         description: "",
@@ -136,13 +130,11 @@ export function CreatePlaylistDialog({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith("image/")) {
         alert("Please select an image file");
         return;
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert("File size must be less than 5MB");
         return;
@@ -150,10 +142,9 @@ export function CreatePlaylistDialog({
 
       setSelectedFile(file);
 
-      // Create preview URL
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
-      setFormData((prev) => ({ ...prev, imageUrl: "" })); // Clear URL when file is selected
+      setFormData((prev) => ({ ...prev, imageUrl: "" }));
     }
   };
 

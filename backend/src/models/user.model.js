@@ -15,8 +15,14 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    likedSongs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Song",
+      },
+    ],
   },
-  { timestamps: true } // createdAt, updatedAt timestamps will be added automatically
+  { timestamps: true }
 );
 
 export const User = mongoose.model("User", userSchema);

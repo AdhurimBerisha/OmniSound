@@ -12,6 +12,7 @@ interface MusicStore {
   featuredSongs: Song[];
   madeForYouSongs: Song[];
   trendingSongs: Song[];
+  likedSongs: Song[];
   stats: Stats;
 
   fetchAlbums: () => Promise<void>;
@@ -21,6 +22,9 @@ interface MusicStore {
   fetchTrendingSongs: () => Promise<void>;
   fetchStats: () => Promise<void>;
   fetchSongs: () => Promise<void>;
+  fetchLikedSongs: () => Promise<void>;
+  likeSong: (songId: string) => Promise<void>;
+  unlikeSong: (songId: string) => Promise<void>;
   deleteSong: (id: string) => Promise<void>;
   deleteAlbum: (id: string) => Promise<void>;
 }
@@ -34,6 +38,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
   madeForYouSongs: [],
   featuredSongs: [],
   trendingSongs: [],
+  likedSongs: [],
   stats: {
     totalSongs: 0,
     totalAlbums: 0,
@@ -160,6 +165,47 @@ export const useMusicStore = create<MusicStore>((set) => ({
       set({ error: error.response.data.message });
     } finally {
       set({ isLoading: false });
+    }
+  },
+
+  fetchLikedSongs: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axiosInstance.get("/users/liked-songs");
+      set({ likedSongs: response.data });
+    } catch (error: any) {
+      console.error("Error fetching liked songs:", error);
+      set({ error: error.response?.data?.message || error.message });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  likeSong: async (songId) => {
+    try {
+      const response = await axiosInstance.post(`/users/like/${songId}`);
+      set({ likedSongs: response.data.likedSongs });
+      toast.success("Song added to liked songs");
+    } catch (error: any) {
+      console.error("Error liking song:", error);
+      toast.error(
+        "Failed to like song: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
+  },
+
+  unlikeSong: async (songId) => {
+    try {
+      const response = await axiosInstance.delete(`/users/like/${songId}`);
+      set({ likedSongs: response.data.likedSongs });
+      toast.success("Song removed from liked songs");
+    } catch (error: any) {
+      console.error("Error unliking song:", error);
+      toast.error(
+        "Failed to unlike song: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   },
 }));

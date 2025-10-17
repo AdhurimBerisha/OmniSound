@@ -97,14 +97,13 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
   playNext: () => {
     const { currentIndex, queue, isShuffled, isLooped } = get();
-    
+
     if (isShuffled) {
-      // Get a random index that's not the current one
       let nextIndex;
       do {
         nextIndex = Math.floor(Math.random() * queue.length);
       } while (nextIndex === currentIndex && queue.length > 1);
-      
+
       const nextSong = queue[nextIndex];
 
       const socket = useChatStore.getState().socket;
@@ -123,7 +122,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     } else {
       const nextIndex = currentIndex + 1;
 
-      // if there is a next song to play, let's play it
       if (nextIndex < queue.length) {
         const nextSong = queue[nextIndex];
 
@@ -141,10 +139,9 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
           isPlaying: true,
         });
       } else {
-        // If loop is enabled, start from the beginning
         if (isLooped && queue.length > 0) {
           const firstSong = queue[0];
-          
+
           const socket = useChatStore.getState().socket;
           if (socket.auth) {
             socket.emit("update_activity", {
@@ -159,7 +156,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
             isPlaying: true,
           });
         } else {
-          // no next song and loop is disabled
           set({ isPlaying: false });
 
           const socket = useChatStore.getState().socket;
@@ -176,14 +172,13 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
   playPrevious: () => {
     const { currentIndex, queue, isShuffled } = get();
-    
+
     if (isShuffled) {
-      // Get a random index that's not the current one
       let prevIndex;
       do {
         prevIndex = Math.floor(Math.random() * queue.length);
       } while (prevIndex === currentIndex && queue.length > 1);
-      
+
       const prevSong = queue[prevIndex];
 
       const socket = useChatStore.getState().socket;
@@ -202,7 +197,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
     } else {
       const prevIndex = currentIndex - 1;
 
-      // theres a prev song
       if (prevIndex >= 0) {
         const prevSong = queue[prevIndex];
 
@@ -220,7 +214,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
           isPlaying: true,
         });
       } else {
-        // no prev song
         set({ isPlaying: false });
 
         const socket = useChatStore.getState().socket;
@@ -237,41 +230,41 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   toggleShuffle: () => {
     const { queue, currentIndex, isShuffled } = get();
     const currentSong = queue[currentIndex];
-    
+
     if (!isShuffled) {
-      // Create a new array excluding the current song
       const remainingSongs = queue.filter((_, index) => index !== currentIndex);
-      // Shuffle the remaining songs
+
       const shuffledSongs = [...remainingSongs].sort(() => Math.random() - 0.5);
-      // Put the current song at the beginning
+
       const newQueue = [currentSong, ...shuffledSongs];
-      
+
       set({
         queue: newQueue,
         currentIndex: 0,
-        isShuffled: true
+        isShuffled: true,
       });
     } else {
-      // Reset to original order
       const originalQueue = [...queue].sort((a, b) => {
-        const indexA = queue.findIndex(song => song._id === a._id);
-        const indexB = queue.findIndex(song => song._id === b._id);
+        const indexA = queue.findIndex((song) => song._id === a._id);
+        const indexB = queue.findIndex((song) => song._id === b._id);
         return indexA - indexB;
       });
-      
-      const newIndex = originalQueue.findIndex(song => song._id === currentSong?._id);
-      
+
+      const newIndex = originalQueue.findIndex(
+        (song) => song._id === currentSong?._id
+      );
+
       set({
         queue: originalQueue,
         currentIndex: newIndex,
-        isShuffled: false
+        isShuffled: false,
       });
     }
   },
 
   toggleLoop: () => {
     set((state) => ({
-      isLooped: !state.isLooped
+      isLooped: !state.isLooped,
     }));
   },
 }));

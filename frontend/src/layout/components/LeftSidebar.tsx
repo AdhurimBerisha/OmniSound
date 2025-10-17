@@ -7,13 +7,20 @@ import { usePlaylistStore } from "@/stores/usePlaylistStore";
 import { useChatStore } from "@/stores/useChatStore";
 import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog";
 import { SignedIn } from "@clerk/clerk-react";
-import { HomeIcon, Library, MessageCircle, Music, Plus } from "lucide-react";
+import {
+  HomeIcon,
+  Library,
+  MessageCircle,
+  Music,
+  Plus,
+  Heart,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 const LeftSidebar = () => {
-  //   data fetching logic => zustand
-  const { songs, albums, error, fetchAlbums, isLoading } = useMusicStore();
+  const { albums, fetchAlbums, isLoading, likedSongs, fetchLikedSongs } =
+    useMusicStore();
   const {
     playlists,
     fetchUserPlaylists,
@@ -27,7 +34,8 @@ const LeftSidebar = () => {
   useEffect(() => {
     fetchAlbums();
     fetchUserPlaylists();
-  }, [fetchAlbums, fetchUserPlaylists]);
+    fetchLikedSongs();
+  }, [fetchAlbums, fetchUserPlaylists, fetchLikedSongs]);
   console.log({ albums });
 
   return (
@@ -81,6 +89,20 @@ const LeftSidebar = () => {
               <Music className="mr-2 size-5" />
               <span className="hidden md:inline">My Playlists</span>
             </Link>
+
+            <Link
+              to={"/liked-songs"}
+              className={cn(
+                buttonVariants({
+                  variant: "ghost",
+                  className:
+                    "w-full justify-start text-white hover:bg-zinc-800",
+                })
+              )}
+            >
+              <Heart className="mr-2 size-5" />
+              <span className="hidden md:inline">Liked Songs</span>
+            </Link>
           </SignedIn>
         </div>
       </div>
@@ -125,6 +147,29 @@ const LeftSidebar = () => {
                 ))
               )}
             </div>
+
+            {/* Liked Songs */}
+            <SignedIn>
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-zinc-400 px-2 mb-2">
+                  Liked Songs
+                </h3>
+                <Link
+                  to="/liked-songs"
+                  className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-md flex items-center justify-center text-white font-bold text-lg">
+                    ♥
+                  </div>
+                  <div className="flex-1 min-w-0 hidden md:block">
+                    <p className="font-medium truncate">Liked Songs</p>
+                    <p className="text-sm text-zinc-400 truncate">
+                      • Playlist • {likedSongs.length} songs
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            </SignedIn>
 
             {/* User Playlists */}
             <SignedIn>

@@ -10,7 +10,6 @@ import { protectRoute, requireAdmin } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// slightly optimize clean code
 router.use(protectRoute, requireAdmin);
 
 router.get("/check", checkAdmin);
