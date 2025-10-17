@@ -13,6 +13,7 @@ import {
   Trash2,
   Clock,
   Pause,
+  X,
 } from "lucide-react";
 
 export const formatDuration = (seconds: number) => {
@@ -24,7 +25,7 @@ export const formatDuration = (seconds: number) => {
 export function PlaylistDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentPlaylist, fetchPlaylistById, deletePlaylist, isLoading } =
+  const { currentPlaylist, fetchPlaylistById, deletePlaylist, removeSongFromPlaylist, isLoading } =
     usePlaylistStore();
   const { currentSong, isPlaying, playAlbum, togglePlay } = usePlayerStore();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -73,6 +74,18 @@ export function PlaylistDetailPage() {
         navigate("/playlists");
       } finally {
         setIsDeleting(false);
+      }
+    }
+  };
+
+  const handleRemoveSong = async (songId: string, songTitle: string) => {
+    if (!currentPlaylist) return;
+
+    if (window.confirm(`Are you sure you want to remove "${songTitle}" from this playlist?`)) {
+      try {
+        await removeSongFromPlaylist(currentPlaylist._id, songId);
+      } catch (error) {
+        console.error("Failed to remove song:", error);
       }
     }
   };
@@ -199,7 +212,7 @@ export function PlaylistDetailPage() {
             <div className="bg-black/20 backdrop-blur-sm">
               {/* Table header */}
               <div
-                className="grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-10 py-2 text-sm 
+                className="grid grid-cols-[16px_4fr_2fr_1fr_auto] gap-4 px-10 py-2 text-sm 
             text-zinc-400 border-b border-white/5"
               >
                 <div>#</div>
@@ -208,6 +221,7 @@ export function PlaylistDetailPage() {
                 <div>
                   <Clock className="h-4 w-4" />
                 </div>
+                <div></div>
               </div>
 
               {/* Songs list */}
@@ -226,11 +240,13 @@ export function PlaylistDetailPage() {
                       return (
                         <div
                           key={song._id}
-                          onClick={() => handlePlaySong(index)}
-                          className="grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-4 py-2 text-sm text-zinc-400 hover:bg-white/5 rounded-md group cursor-pointer"
+                          className="grid grid-cols-[16px_4fr_2fr_1fr_auto] gap-4 px-4 py-2 text-sm text-zinc-400 hover:bg-white/5 rounded-md group"
                         >
                           {/* Play button */}
-                          <div className="flex items-center justify-center">
+                          <div 
+                            className="flex items-center justify-center cursor-pointer"
+                            onClick={() => handlePlaySong(index)}
+                          >
                             {isCurrentSong && isPlaying ? (
                               <div className="size-4 text-green-500">♫</div>
                             ) : (
@@ -244,7 +260,10 @@ export function PlaylistDetailPage() {
                           </div>
 
                           {/* Song info */}
-                          <div className="flex items-center gap-3">
+                          <div 
+                            className="flex items-center gap-3 cursor-pointer"
+                            onClick={() => handlePlaySong(index)}
+                          >
                             <img
                               src={song.imageUrl}
                               alt={song.title}
@@ -259,13 +278,28 @@ export function PlaylistDetailPage() {
                           </div>
 
                           {/* Date Added */}
-                          <div className="flex items-center">
+                          <div className="flex items-center cursor-pointer" onClick={() => handlePlaySong(index)}>
                             {song.createdAt?.split("T")[0]}
                           </div>
 
                           {/* Duration */}
-                          <div className="flex items-center">
+                          <div className="flex items-center cursor-pointer" onClick={() => handlePlaySong(index)}>
                             {formatDuration(song.duration)}
+                          </div>
+
+                          {/* Remove button */}
+                          <div className="flex items-center justify-center">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveSong(song._id, song.title);
+                              }}
+                              className="size-8 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
                       );
