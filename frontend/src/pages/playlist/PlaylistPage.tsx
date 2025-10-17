@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog";
 import { usePlaylistStore } from "@/stores/usePlaylistStore";
 import { useMusicStore } from "@/stores/useMusicStore";
-import { Plus, Music, Clock, Pause, Play } from "lucide-react";
+import { Plus, Music } from "lucide-react";
 
 export const formatDuration = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -14,7 +14,7 @@ export const formatDuration = (seconds: number) => {
 
 export function PlaylistPage() {
   const { playlists, isLoading, fetchUserPlaylists } = usePlaylistStore();
-  const { songs, fetchSongs } = useMusicStore();
+  const { fetchSongs } = useMusicStore();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -122,10 +122,20 @@ export function PlaylistPage() {
                       className="bg-zinc-800/40 p-4 rounded-md hover:bg-zinc-700/40 transition-all group cursor-pointer relative"
                     >
                       <div className="relative mb-4">
-                        <div className="aspect-square rounded-md shadow-lg overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                          <span className="text-white font-bold text-4xl">
-                            {playlist.name.charAt(0).toUpperCase()}
-                          </span>
+                        <div className="aspect-square rounded-md shadow-lg overflow-hidden">
+                          {playlist.imageUrl ? (
+                            <img
+                              src={playlist.imageUrl}
+                              alt={playlist.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                              <span className="text-white font-bold text-4xl">
+                                {playlist.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <h3 className="font-medium mb-2 truncate">

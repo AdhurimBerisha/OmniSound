@@ -116,8 +116,18 @@ export function PlaylistDetailPage() {
           {/* Content */}
           <div className="relative z-10 ">
             <div className="flex p-6 gap-6 pb-8">
-              <div className="w-[250px] h-[240px] bg-gradient-to-br from-purple-500 to-pink-500 rounded shadow-xl flex items-center justify-center text-white font-bold text-6xl">
-                {currentPlaylist.name.charAt(0).toUpperCase()}
+              <div className="w-[250px] h-[240px] rounded shadow-xl overflow-hidden">
+                {currentPlaylist.imageUrl ? (
+                  <img
+                    src={currentPlaylist.imageUrl}
+                    alt={currentPlaylist.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-6xl">
+                    {currentPlaylist.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
               <div className="flex flex-col justify-end">
                 <p className="text-sm font-medium">Playlist</p>

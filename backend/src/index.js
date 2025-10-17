@@ -16,6 +16,7 @@ import songRoutes from "./routes/song.route.js";
 import albumRoutes from "./routes/album.route.js";
 import statRoutes from "./routes/stat.route.js";
 import playlistRoutes from "./routes/playlist.route.js";
+import uploadRoutes from "./routes/upload.route.js";
 import { connectDB } from "./lib/db.js";
 
 dotenv.config();
@@ -54,6 +55,7 @@ app.use("/api/songs", songRoutes);
 app.use("/api/albums", albumRoutes);
 app.use("/api/stats", statRoutes);
 app.use("/api/playlists", playlistRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // error handler
 app.use((err, req, res, next) => {

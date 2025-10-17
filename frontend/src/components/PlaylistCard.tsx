@@ -48,9 +48,17 @@ export function PlaylistCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
-              {playlist.name.charAt(0).toUpperCase()}
-            </div>
+            {playlist.imageUrl ? (
+              <img
+                src={playlist.imageUrl}
+                alt={playlist.name}
+                className="w-12 h-12 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                {playlist.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div>
               <CardTitle className="text-base">{playlist.name}</CardTitle>
               <p className="text-sm text-muted-foreground">

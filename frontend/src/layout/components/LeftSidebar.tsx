@@ -141,9 +141,17 @@ const LeftSidebar = () => {
                       key={playlist._id}
                       className="p-2 hover:bg-zinc-800 rounded-md flex items-center gap-3 group cursor-pointer"
                     >
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md flex items-center justify-center text-white font-bold text-sm">
-                        {playlist.name.charAt(0).toUpperCase()}
-                      </div>
+                      {playlist.imageUrl ? (
+                        <img
+                          src={playlist.imageUrl}
+                          alt={playlist.name}
+                          className="w-12 h-12 rounded-md object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md flex items-center justify-center text-white font-bold text-sm">
+                          {playlist.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
 
                       <div className="flex-1 min-w-0 hidden md:block">
                         <p className="font-medium truncate">{playlist.name}</p>
