@@ -4,9 +4,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { usePlaylistStore } from "@/stores/usePlaylistStore";
+import { CreatePlaylistDialog } from "@/components/CreatePlaylistDialog";
 import { SignedIn } from "@clerk/clerk-react";
-import { HomeIcon, Library, MessageCircle, Music } from "lucide-react";
-import { useEffect } from "react";
+import { HomeIcon, Library, MessageCircle, Music, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 const LeftSidebar = () => {
@@ -17,6 +18,7 @@ const LeftSidebar = () => {
     fetchUserPlaylists,
     isLoading: playlistsLoading,
   } = usePlaylistStore();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchAlbums();
@@ -118,9 +120,18 @@ const LeftSidebar = () => {
             {/* User Playlists */}
             <SignedIn>
               <div>
-                <h3 className="text-sm font-medium text-zinc-400 px-2 mb-2">
-                  Your Playlists
-                </h3>
+                <div className="flex items-center justify-between px-2 mb-2">
+                  <h3 className="text-sm font-medium text-zinc-400">
+                    Your Playlists
+                  </h3>
+                  <button
+                    onClick={() => setCreateDialogOpen(true)}
+                    className="text-zinc-400 hover:text-white transition-colors"
+                    title="Create new playlist"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
                 {playlistsLoading ? (
                   <PlaylistSkeleton />
                 ) : (
@@ -148,6 +159,12 @@ const LeftSidebar = () => {
           </div>
         </ScrollArea>
       </div>
+
+      {/* Create Playlist Dialog */}
+      <CreatePlaylistDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
     </div>
   );
 };

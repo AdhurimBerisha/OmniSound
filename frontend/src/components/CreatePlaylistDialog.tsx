@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,23 +9,51 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { usePlaylistStore } from "@/stores/usePlaylistStore";
+import { useAuth } from "@clerk/clerk-react";
+import { axiosInstance } from "@/lib/axios";
+import type { Playlist } from "@/types";
 
 interface CreatePlaylistDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  playlist?: Playlist | null; // For editing existing playlists
 }
 
 export function CreatePlaylistDialog({
   open,
   onOpenChange,
+  playlist,
 }: CreatePlaylistDialogProps) {
-  const { createPlaylist, isLoading } = usePlaylistStore();
+  const { createPlaylist, updatePlaylist, isLoading } = usePlaylistStore();
+  const { isSignedIn, getToken } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     imageUrl: "",
     isPublic: false,
   });
+
+  const isEditing = !!playlist;
+
+  // Populate form data when editing
+  useEffect(() => {
+    if (playlist && open) {
+      setFormData({
+        name: playlist.name,
+        description: playlist.description,
+        imageUrl: playlist.imageUrl,
+        isPublic: playlist.isPublic,
+      });
+    } else if (!playlist && open) {
+      // Reset form for new playlist
+      setFormData({
+        name: "",
+        description: "",
+        imageUrl: "",
+        isPublic: false,
+      });
+    }
+  }, [playlist, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,13 +62,36 @@ export function CreatePlaylistDialog({
       return;
     }
 
+    // Check if user is signed in
+    if (!isSignedIn) {
+      console.error("User must be signed in to create/update playlists");
+      return;
+    }
+
     try {
-      await createPlaylist({
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        imageUrl: formData.imageUrl.trim(),
-        isPublic: formData.isPublic,
-      });
+      // Ensure we have a fresh token
+      const token = await getToken();
+      if (token) {
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${token}`;
+      }
+
+      if (isEditing && playlist) {
+        await updatePlaylist(playlist._id, {
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          imageUrl: formData.imageUrl.trim(),
+          isPublic: formData.isPublic,
+        });
+      } else {
+        await createPlaylist({
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          imageUrl: formData.imageUrl.trim(),
+          isPublic: formData.isPublic,
+        });
+      }
 
       // Reset form
       setFormData({
@@ -52,7 +103,10 @@ export function CreatePlaylistDialog({
 
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to create playlist:", error);
+      console.error(
+        `Failed to ${isEditing ? "update" : "create"} playlist:`,
+        error
+      );
     }
   };
 
@@ -67,8 +121,16 @@ export function CreatePlaylistDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Playlist</DialogTitle>
+          <DialogTitle>
+            {isEditing ? "Edit Playlist" : "Create New Playlist"}
+          </DialogTitle>
         </DialogHeader>
+
+        {!isSignedIn && (
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+            You must be signed in to create or edit playlists.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -130,8 +192,19 @@ export function CreatePlaylistDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || !formData.name.trim()}>
-              {isLoading ? "Creating..." : "Create Playlist"}
+            <Button
+              type="submit"
+              disabled={isLoading || !formData.name.trim() || !isSignedIn}
+            >
+              {isLoading
+                ? isEditing
+                  ? "Updating..."
+                  : "Creating..."
+                : !isSignedIn
+                ? "Please Sign In"
+                : isEditing
+                ? "Update Playlist"
+                : "Create Playlist"}
             </Button>
           </DialogFooter>
         </form>

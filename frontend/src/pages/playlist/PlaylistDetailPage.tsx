@@ -272,6 +272,7 @@ export function PlaylistDetailPage() {
       <CreatePlaylistDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
+        playlist={currentPlaylist}
       />
     </div>
   );
